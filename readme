@@ -1,0 +1,23 @@
+This is a collection of scripts to pull information from the configuration files of various network devices
+
+Organize_Configuration_Files.sh
+	Given a bunch of configuration files in one directory is attempts to guess what they type of device they are for and move them to an appropriate subdirectory
+
+Generate_hosts_files.sh
+	Given configs in the appropriate hardcoded subdirectories (see "Organize_Configuration_Files.sh") this calls the perl scripts to generate host information from them
+
+Generate_sorted_host_file.sh
+	Calls "Generate_hosts_files.sh" and sorts by IP address
+
+INPATH-interfaces-and-subnets-from-STEELHEAD
+	Generates the input file for "Add INPATH to HOSTS.PL" from Steelhead configuration files
+ 	usage: tac ./Configuration_Files/Steelheads/* | ./INPATH-interfaces-and-subnets-from-STEELHEAD.pl > inpaths.txt
+
+Add_INPATH_to_HOSTS.PL
+	Matches INPATH interface subnets with IP addresses from a hosts file and appends Steelhead name
+
+GENERATE_BGP_NEIGHBOR_DATA
+	Takes some output from various show commands from routers and creates a table of BGP information to be fed into GENERATE-ASN-graph.pl
+
+GENERATE-ASN-graph
+	Takes the input of GENERATE_BGP_NEIGHBOR_DATA and uses graphviz to create a picture
