@@ -1,4 +1,4 @@
-This is a collection of scripts to pull information from the configuration files of various network devices
+This is a collection of scripts to pull information from the configuration files of various network devices (eg. Cisco routers and switches, Riverbed Steelheads, Cisco Nexus, Cisco ASA)
 
 Organize_Configuration_Files.sh
 	Given a bunch of configuration files in one directory is attempts to guess what they type of device they are for and move them to an appropriate subdirectory
