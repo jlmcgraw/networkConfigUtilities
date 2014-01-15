@@ -1,3 +1,8 @@
+#!/bin/sh
+  # CORRECT if files can't contain control chars and can't start with "-":
+  set -eu                # Always put this in Bourne shell scripts
+  IFS="`printf '\n\t'`"  # Always put this in Bourne shell scripts
+
 #Move configuration files to separate directories based on a guess as to what they are for
 
 #Save and then change BASH field separator so that we can handle file names with spaces in them

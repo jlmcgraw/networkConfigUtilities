@@ -1,3 +1,8 @@
+#!/bin/sh
+  # CORRECT if files can't contain control chars and can't start with "-":
+  set -eu                # Always put this in Bourne shell scripts
+  IFS="`printf '\n\t'`"  # Always put this in Bourne shell scripts
+
 echo "#This host file was created on $(date)"
 #ls -tQ ./configuration_files/IOS12/*| xargs cat
 

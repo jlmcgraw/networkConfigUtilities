@@ -3,5 +3,5 @@
   set -eu                # Always put this in Bourne shell scripts
   IFS="`printf '\n\t'`"  # Always put this in Bourne shell scripts
 
-#Display hosts with duplicate IP addresses (ignoring lines with HSRP in them)
-awk -F' ' '{print $1}' hosts |sort|uniq -d|grep -F -f - hosts | grep -v HSRP
+# Create host file from lumped config file, sorted by IP address
+./generate_hosts_files.sh | sort -t . -k 1,1n -k 2,2n -k 3,3n -k 4,4n | uniq > hosts_sorted.txt 
