@@ -27,12 +27,12 @@ This is a collection of perl scripts to pull information from the configuration 
 Getting started
 ---------------
 
-make destination
-make clean
-Put all of your configuration files into "configuration_files"
-make organize
-make inpath
-make hosts
-make hostsWithInpath
-make combine
+make destination<br>
+make clean<br>
+Put all of your configuration files into "configuration_files"<br>
+make organize<br>
+make inpath<br>
+make hosts<br>
+make hostsWithInpath<br>
+make combine<br>
 
