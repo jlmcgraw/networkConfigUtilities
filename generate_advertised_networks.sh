@@ -1,5 +1,5 @@
 echo "#This file was created on $(date)"
-echo "Hostname,Network, Mask, RouteType, ASN"
+echo "Hostname,Network,Mask,Mask Length,RouteType,ASN"
 #ls -tQ ./configuration_files/IOS12/*| xargs cat
 
 #sort the files by date, newest first, before cat'ing them

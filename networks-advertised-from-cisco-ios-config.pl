@@ -7,24 +7,14 @@ use autodie;
 use NetAddr::IP;
 
 #
-# takes text from a Cisco IOS, Nexus or PIX running config
-# and produces an output for import into DNS or host file
-# this makes traceroutes more readable
+# Gather the networks advertised by various routing protocols via "network" statements
+# Obviously this doesn't fully represent what is actually advertised but it's a start
 #
-# this really only works with IPv4
-#
-# usage: ./hosts-from-running-config.pl < inputfile.txt > hosts
-#   where inputfile.txt is one or more config files lumped together
-#
-# if you want to get more crafty you can pipe through sort and uniq:
-# ./hosts-from-running-config.pl < inputfile.txt | sort | uniq > hosts
-#
-# You'll have to put this hosts file in the proper place for your OS to make it
-# take effect (google is your friend)
 
-our ( @hostnameFields, @fields );
-our ( $hostname, $route_type, $AS_number, $ip_addr, $network_mask, $network_masklen );
-our ($subnet);
+my ( @hostnameFields, @fields );
+my ( $hostname, $route_type, $AS_number, $ip_addr, $network_mask,
+    $network_masklen );
+my ($subnet);
 
 while (<>) {
 
@@ -36,7 +26,8 @@ while (<>) {
     if ( $_ =~ /^hostname / ) {
 
         #Reset variables after each new hostname just in case
-        $hostname = $route_type = $AS_number = $ip_addr = $network_mask = $network_masklen = $subnet = "";
+        $hostname = $route_type = $AS_number = $ip_addr = $network_mask =
+          $network_masklen = $subnet = "";
 
         # split that line on the whitespace character
         @hostnameFields = split /\s+/, $_;
@@ -63,7 +54,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-	#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/" separated fields (nexus format is #.#.#.#/mask)
         @fields = split /\s+|\//, $_;
 
         #Create an new subnet from proper fields
@@ -73,11 +64,12 @@ while (<>) {
         $network_mask = $fields[3];
 
         #Comment next line out to not use the NetAddr object
-        $ip_addr      = $subnet->addr;
-        $network_mask = $subnet->mask;
-	$network_masklen = $subnet->masklen;
+        $ip_addr         = $subnet->addr;
+        $network_mask    = $subnet->mask;
+        $network_masklen = $subnet->masklen;
 
-        print "$hostname\t\t$ip_addr\t\t$network_mask\t\t$network_masklen\t\t$route_type\t\t$AS_number\n";
+        print
+"$hostname,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number\n";
     }
 
     # identify lines with "network #.#.#.# #.#.#.#" in them (EIGRP, OSPF, RIP routes)
@@ -86,7 +78,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-	#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields = split /\s+|\//, $_;
 
         #This little bit of magic inverts the wildcard mask to a netmask.  Copied from somewhere on the net
@@ -102,10 +94,11 @@ while (<>) {
         $network_mask = $fields[2];
 
         #Comment next line out to not use the NetAddr object
-        $ip_addr      = $subnet->addr;
-        $network_mask = $subnet->mask;    #Change to masklen to get length
-	$network_masklen = $subnet->masklen;
-        print "$hostname\t\t$ip_addr\t\t$network_mask\t\t$network_masklen\t\t$route_type\t\t$AS_number\n";
+        $ip_addr         = $subnet->addr;
+        $network_mask    = $subnet->mask;      #Change to masklen to get length
+        $network_masklen = $subnet->masklen;
+        print
+"$hostname,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number\n";
     }
 
     # identify lines with "network #.#.#.#/##" in them (Nexus EIGRP, OSPF, RIP routes)
@@ -114,7 +107,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-	#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields = split /\s+|\//, $_;
 
         #Create an new subnet from proper fields
@@ -124,12 +117,12 @@ while (<>) {
         $network_mask = $fields[2];
 
         #Comment next line out to not use the NetAddr object
-        $ip_addr      = $subnet->addr;
-        $network_mask = $subnet->mask;
-	$network_masklen = $subnet->masklen;
+        $ip_addr         = $subnet->addr;
+        $network_mask    = $subnet->mask;
+        $network_masklen = $subnet->masklen;
 
         print
-"$hostname\t\t$ip_addr\t\t$network_mask\t\t$network_masklen\t\t$route_type\t\t$AS_number\n";
+"$hostname,t$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number\n";
     }
 }
 
