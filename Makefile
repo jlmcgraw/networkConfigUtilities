@@ -39,3 +39,7 @@ hostsWithInpath:
 combine:
 	#Combine into the final hosts file 
 	cat hostsWithInpath.txt hosts.txt > hosts
+
+networks:
+	#A list of network statements in configs.  Generally equal to advertised networks but not always
+	./generate_advertised_networks.sh > networks.csv
