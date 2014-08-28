@@ -37,7 +37,7 @@ while (<>) {
 
     # identify lines with "configure vlan" at the beginning
     if ( $_ =~
-/^configure vlan.*ipaddress (?:[0-9]{1,3}\.){3}[0-9]{1,3} (?:[0-9]{1,3}\.){3}[0-9]{1,3}/
+        /^configure vlan.*ipaddress (?:[0-9]{1,3}\.){3}[0-9]{1,3} (?:[0-9]{1,3}\.){3}[0-9]{1,3}/
       )
     {
 
@@ -64,7 +64,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields       = split /\s+|\//, $_;
         $group_number = $fields[1];
         $ip_addr      = $fields[3];
@@ -78,7 +78,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields       = split /\s+|\//, $_;
         $group_number = $fields[1];
         $ip_addr      = $fields[3];
@@ -92,7 +92,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-#split the good lines into space or separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or separated fields (nexus format is #.#.#.#/mask)
         @fields = split /\s+/, $_;
         $ipv6_addr = $fields[2];
         print "$ipv6_addr\t\t$hostname-$int_name\n";

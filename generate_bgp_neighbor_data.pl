@@ -6,7 +6,7 @@ use strict;
 #name	Local_ID	Local_ASN	Remote_Neighbor	Remote_ID	Remote_ASN
 #
 print
-"#Hostname\t\t\tLocal_ID\t\tLocal_ASN\tRemote_Neighbor\t\tRemote_ID\t\tRemote_ASN\n";
+  "#Hostname\t\t\tLocal_ID\t\tLocal_ASN\tRemote_Neighbor\t\tRemote_ID\t\tRemote_ASN\n";
 while (<>) {
     our (
         $hostname,        $Local_ID,  $Local_ASN,
@@ -39,7 +39,7 @@ while (<>) {
     #BGP neighbor is 10.78.32.138,  remote AS 65165, internal link
     if ( $_ =~ /^BGP neighbor is/ ) {
 
-#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields = split /\s+/, $_;
 
         #Remove the comma
@@ -54,14 +54,14 @@ while (<>) {
     #BGP version 4, remote router ID 172.20.16.95" in them
     if ( $_ =~ /^\s*BGP version/ ) {
 
-#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields = split /\s+/, $_;
         $Remote_ID = $fields[7];
 
         #ignore lines that contain 0.0.0.0 which indicates an invalid/down peer
         if ( $_ !~ /0\.0\.0\.0/ ) {
             print
-"$hostname\t\t$Local_ID\t\t$Local_ASN\t\t$Remote_Neighbor\t\t$Remote_ID\t\t$Remote_ASN\n";
+              "$hostname\t\t$Local_ID\t\t$Local_ASN\t\t$Remote_Neighbor\t\t$Remote_ID\t\t$Remote_ASN\n";
         }
     }
 

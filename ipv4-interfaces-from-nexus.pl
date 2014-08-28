@@ -35,13 +35,14 @@ while (<>) {
 
         #set the variable
         $int_name = $fields[1];
-    	}
+    }
 
     if ( $_ =~ /^\s+hsrp \d+/ ) {
-	#strip leading whitespace
-	$_ =~ s/^\s+//;
-        
-	#split the good lines into space-separated fields
+
+        #strip leading whitespace
+        $_ =~ s/^\s+//;
+
+        #split the good lines into space-separated fields
         @fields = split /\s+/, $_;
 
         #substitute - for / and : in dns names
@@ -49,8 +50,7 @@ while (<>) {
 
         #set the variable
         $hsrp_group = $fields[1];
-    	}
-
+    }
 
     # identify lines with "ip address #.#.#.#" in them
     if ( $_ =~ /^\s*ip address (?:[0-9]{1,3}\.){3}[0-9]{1,3}/ ) {
@@ -58,24 +58,24 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-	#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields = split /\s+|\//, $_;
         $ip_addr = $fields[2];
         print "$ip_addr\t\t$hostname-$int_name\n";
-    	}
+    }
 
     # This section handles HSRP configurations
     # identify lines with "standby # ip #.#.#.#" in them
-    if ( $_ =~ /^\s*ip (?:[0-9]{1,3}\.){3}[0-9]{1,3}/) {
+    if ( $_ =~ /^\s*ip (?:[0-9]{1,3}\.){3}[0-9]{1,3}/ ) {
 
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-	#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
-        @fields       = split /\s+|\//, $_;
-        $ip_addr      = $fields[1];
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        @fields = split /\s+|\//, $_;
+        $ip_addr = $fields[1];
         print "$ip_addr\t\t$hostname-$int_name-HSRP$hsrp_group\n";
-    	}
+    }
 
     # This section handles GLBP configurations
     # identify lines with "glbp # ip #.#.#.#" in them
@@ -84,7 +84,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields       = split /\s+|\//, $_;
         $group_number = $fields[1];
         $ip_addr      = $fields[3];
@@ -98,7 +98,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-#split the good lines into space or separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or separated fields (nexus format is #.#.#.#/mask)
         @fields = split /\s+/, $_;
         $ipv6_addr = $fields[2];
         print "$ipv6_addr\t\t$hostname-$int_name\n";

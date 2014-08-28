@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-#Test whether every IP in a HOSTS file lies within any INPATH interface subnet in a second filel
+#Test whether every IP in a HOSTS file lies within any INPATH interface subnet in a second file
 #
 # Usage:
 #To do: use command line variables instead of hardcoded file names
@@ -77,10 +77,10 @@ foreach (@hosts) {
         #skip if this exact IP address is already in the host file
         next if ( $HostIPAddress->addr() eq $InpathIPAddress->addr() );
 
-       #If host IP is within the subnet of the inpath interface print out a line
+        #If host IP is within the subnet of the inpath interface print out a line
         if ( $HostIPAddress->within($InpathIPAddress) ) {
 
-#print "NetAddr::IP->addr($HostIPAddress) eq NetAddr::IP->addr($InpathIPAddress)\n";
+            #print "NetAddr::IP->addr($HostIPAddress) eq NetAddr::IP->addr($InpathIPAddress)\n";
             print "$hostfields[0]\t$hostfields[1]-$inpathfields[1]\n";
         }
     }

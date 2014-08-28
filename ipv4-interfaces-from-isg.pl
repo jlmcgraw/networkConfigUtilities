@@ -32,7 +32,7 @@ while (<>) {
 
     }
 
-# identify lines with "set interface ethernet4/1 ip 10.155.1.100/29" at the beginning
+    # identify lines with "set interface ethernet4/1 ip 10.155.1.100/29" at the beginning
     if ( $_ =~ /^set interface .* ip (?:[0-9]{1,3}\.){3}[0-9]{1,3}\// ) {
 
         #split the matching lines into space-separated fields
@@ -44,7 +44,7 @@ while (<>) {
         #print in "ipaddr hostname-interface" format
         $int_name = $fields[2];
 
-#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields2 = split /\s+|\//, $fields[4];
         $ip_addr = $fields2[0];
         print "$ip_addr\t\t$hostname-$int_name\n";

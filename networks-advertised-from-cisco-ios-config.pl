@@ -83,8 +83,12 @@ while (<>) {
     }
 
     # identify lines with "network #.#.#.# #.#.#.#" in them (EIGRP, OSPF, RIP routes)
-    if ( $_ =~ /^\s*network ((?:\d{1,3}\.){3}\d{1,3})\s+((?:\d{1,3}\.){3}\d{1,3})\s*$/ ) {
-  say "$1 $2";
+    if ( $_ =~
+        /^\s*network ((?:\d{1,3}\.){3}\d{1,3})\s+((?:\d{1,3}\.){3}\d{1,3})\s*$/
+      )
+    {
+        say "$1 $2";
+
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
@@ -119,7 +123,7 @@ while (<>) {
 
         }
         else {
-          
+
             say
               "Network w/ mask2: couldn't create subnet for $fields[1]/$fields[2]";
         }

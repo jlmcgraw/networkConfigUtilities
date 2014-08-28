@@ -42,14 +42,15 @@ while (<>) {
         $fields[1] =~ s/\/|:/-/g;
 
         #concat the two fields
-        $int_name = $fields[1].$fields[2];
-	$int_desc = "";  #Clear any leftover descriptions
-	#$contextname = "";  #Clear any leftover descriptions
+        $int_name = $fields[1] . $fields[2];
+        $int_desc = "";                        #Clear any leftover descriptions
+             #$contextname = "";  #Clear any leftover descriptions
     }
-    
+
     # identify lines with "contextname " at the beginning
     if ( $_ =~ /^\s*contextname / ) {
-	#strip leading whitespace
+
+        #strip leading whitespace
         $_ =~ s/^\s+//;
 
         #split the good lines into space-separated fields
@@ -57,17 +58,20 @@ while (<>) {
 
         #substitute - for / and : in dns names
         $fields[1] =~ s/\/|:/-/g;
-	$fields[1] =~ s/-running|\-startup//g;
+        $fields[1] =~ s/-running|\-startup//g;
         $context = $fields[1];
     }
 
     # identify lines with "ip address #.#.#.# #.#.#.#" in them
-    if ( $_ =~ /^\s*ip address (?:[0-9]{1,3}\.){3}[0-9]{1,3} (?:[0-9]{1,3}\.){3}[0-9]{1,3}/ ) {
+    if ( $_ =~
+        /^\s*ip address (?:[0-9]{1,3}\.){3}[0-9]{1,3} (?:[0-9]{1,3}\.){3}[0-9]{1,3}/
+      )
+    {
 
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-	#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields = split /\s+|\//, $_;
         $ip_addr = $fields[2];
         print "$ip_addr\t\t$hostname-$context-$int_name\n";
@@ -80,7 +84,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-	#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields       = split /\s+|\//, $_;
         $group_number = $fields[1];
         $ip_addr      = $fields[3];
@@ -89,14 +93,17 @@ while (<>) {
 
     # This section handles ALIAS configurations
     # identify lines with "alias #.#.#.# #.#.#.#" in them
-    if ( $_ =~ /^\s*alias (?:[0-9]{1,3}\.){3}[0-9]{1,3} (?:[0-9]{1,3}\.){3}[0-9]{1,3}/ ) {
+    if ( $_ =~
+        /^\s*alias (?:[0-9]{1,3}\.){3}[0-9]{1,3} (?:[0-9]{1,3}\.){3}[0-9]{1,3}/
+      )
+    {
 
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-	#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
-        @fields       = split /\s+|\//, $_;
-        $ip_addr      = $fields[1];
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        @fields = split /\s+|\//, $_;
+        $ip_addr = $fields[1];
         print "$ip_addr\t\t$hostname-$context-$int_name-ALIAS\n";
     }
 
@@ -107,7 +114,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields       = split /\s+|\//, $_;
         $group_number = $fields[1];
         $ip_addr      = $fields[3];
@@ -121,7 +128,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-#split the good lines into space or separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or separated fields (nexus format is #.#.#.#/mask)
         @fields = split /\s+/, $_;
         $ipv6_addr = $fields[2];
         print "$ipv6_addr\t\t$hostname-$int_name\n";

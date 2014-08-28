@@ -43,7 +43,7 @@ while (<>) {
         #strip leading whitespace
         $_ =~ s/^\s+//;
 
-#split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+        #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
         @fields       = split /\s+|\//, $_;
         $ip_addr      = $fields[1];
         $network_mask = $fields[3];
@@ -51,7 +51,7 @@ while (<>) {
     }
     if ( $_ =~ /^????????????????#quit/ ) {
         print
-"$hostname\t\t$Local_ID\t\t$Local_ASN\t\t$Remote_neighbor\t\t$Remote_ID\t\t$Remote_ASN\n";
+          "$hostname\t\t$Local_ID\t\t$Local_ASN\t\t$Remote_neighbor\t\t$Remote_ID\t\t$Remote_ASN\n";
 
     }
 
