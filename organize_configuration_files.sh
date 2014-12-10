@@ -12,6 +12,7 @@ cd "configuration_files"
 
 #Move them based on text found within
 for i in `grep -lH "^## In-Path Rules" *`              ; do mv "$i" ./Steelheads; done
+for i in `grep -lH "^## Inpath Rules" *`               ; do mv "$i" ./Steelheads; done
 for i in `grep -lH "^\[system\]" *`                    ; do mv "$i" ./VPN; done
 for i in `grep -lH "^# Full Detail Configuration" *`   ; do mv "$i" ./Extreme; done
 for i in `grep -lH "Total Config size " *`             ; do mv "$i" ./ISG; done

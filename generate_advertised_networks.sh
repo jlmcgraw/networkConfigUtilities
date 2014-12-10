@@ -11,14 +11,14 @@ echo "Hostname,Network,Mask,Mask Length,RouteType,ASN,ip_addr_bigint,isRfc1918,r
 #this way, newer devices will supercede older ones in host file
 
 
-ls -tQ ./configuration_files/IOS12/*| xargs cat | perl networks-advertised-from-cisco-ios-config.pl
+#ls -tQ ./configuration_files/IOS12/*| xargs cat | perl networks-advertised-from-cisco-ios-config.pl
+find ./configuration_files/IOS12/ -name "*" -type f -exec ./networks-advertised-from-cisco-ios-config-byFile.pl {} \;
 
+# ls -tQ ./configuration_files/IOS15/*| xargs cat | perl networks-advertised-from-cisco-ios-config.pl
+find ./configuration_files/IOS15/ -name "*" -type f -exec ./networks-advertised-from-cisco-ios-config-byFile.pl {} \;
 
-ls -tQ ./configuration_files/IOS15/*| xargs cat | perl networks-advertised-from-cisco-ios-config.pl
+# ls -tQ ./configuration_files/Nexus/*| xargs cat | perl networks-advertised-from-cisco-ios-config.pl
+find ./configuration_files/Nexus/ -name "*" -type f -exec ./networks-advertised-from-cisco-ios-config-byFile.pl {} \;
 
-
-ls -tQ ./configuration_files/Nexus/*| xargs cat | perl networks-advertised-from-cisco-ios-config.pl
-
-
-ls -tQ ./configuration_files/ASA/*| xargs cat | perl ipv4-interfaces-from-ios12.pl
-
+# ls -tQ ./configuration_files/ASA/*  | xargs cat | perl ipv4-interfaces-from-ios12.pl
+# find ./configuration_files/ASA/ -name "*" -type f -exec networks-advertised-from-cisco-ios-config-byFile {}.pl {} \;

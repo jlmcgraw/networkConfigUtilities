@@ -63,6 +63,7 @@ while (<>) {
 
         #Create an new subnet from proper fields
         $subnet = NetAddr::IP->new("$fields[1]/$fields[3]");
+        
         if ($subnet) {
 
             # $ip_addr      = $fields[1];
@@ -73,8 +74,8 @@ while (<>) {
             $network_mask    = $subnet->mask;
             $network_masklen = $subnet->masklen;
 
-            print
-              "$hostname,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number\n";
+            say
+              "$hostname,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number";
         }
         else {
             say
@@ -118,8 +119,8 @@ while (<>) {
             $ip_addr         = $subnet->addr;
             $network_mask    = $subnet->mask;   #Change to masklen to get length
             $network_masklen = $subnet->masklen;
-            print
-              "$hostname,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number\n";
+            say
+              "$hostname,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number";
 
         }
         else {
@@ -150,8 +151,8 @@ while (<>) {
             $network_mask    = $subnet->mask;
             $network_masklen = $subnet->masklen;
 
-            print
-              "$hostname,t$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number\n";
+            say
+              "$hostname,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number";
         }
         else {
             say
@@ -184,8 +185,8 @@ while (<>) {
             $network_masklen = $subnet->masklen;
             $route_type      = "Connected";        #routing process
             $AS_number       = "";                 #AS number
-            print
-              "$hostname,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number\n";
+            say
+              "$hostname,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number";
         }
         else {
             # say @fields;

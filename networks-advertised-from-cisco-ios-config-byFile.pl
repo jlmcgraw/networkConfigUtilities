@@ -11,13 +11,17 @@ use vars qw/ %opt /;
 
 use v5.18;
 use Params::Validate qw(:all);
+
+#don't buffer stdout
+$| = 1;
+
 exit main(@ARGV);
 
 sub main {
-    my ($bandwidth);
-    my ($description);
-    my ($interface);
-    my ($hostname);
+    my $bandwidth;
+    my $description;
+    my $interface;
+    my $hostname;
     my $ip_addr;
     my $network_mask;
     my $network_masklen;
@@ -81,11 +85,12 @@ sub main {
     my $configText = read_file($inputConfigFile);
 
     #Find hostname
-    my $hostnameRegex = qr/^hostname\s+(.*)$/m;
+    my $hostnameRegex = qr/^hostname \s+ ([\w\-]+)/mx;
     ($hostname) = $configText =~ /$hostnameRegex/ig;
-
+  
+    
     #Find routing processes
-    my $routingProcessRegex = qr/^ router \s+ (bgp|ospf|eigrp|rip) \s+ (\d+) $/mx;
+    my $routingProcessRegex = qr/^ \s+ router \s+ (bgp|ospf|eigrp|rip) \s+ (\d+) $/mx;
     my @routingProcesses    = $configText =~ /$routingProcessRegex/ig;
 
     #     say @routingProcesses;
@@ -97,15 +102,13 @@ sub main {
     # qr /^\s*network ((?:\d{1,3}\.){3}\d{1,3})\s+((?:\d{1,3}\.){3}\d{1,3})\s*$/smx;
 
     my $ipv4InterfaceIpAddressRegex =
-      qr/^\s+ ip \s+ address \s+ (?<ip>$ipv4AddressRegex) \s+ (?<mask>$ipv4NetmaskRegex)                                             
-        /mx;
+      qr/^ \s+ ip \s+ address \s+ (?<ip>$ipv4AddressRegex) \s+ (?<mask>$ipv4NetmaskRegex) /mx;
 
     #Match any interface up to first "!", capturing the intervening text
     my $interfaceRegex = qr/^ interface \s+ (.*?) !/smx;
     
     #Pull out all config for each routing process (from "router" up to first line beginning with "!"
-    my $routingProcessSectionRegex = qr/^router \s (?<route_type>(?:bgp|ospf|eigrp|rip)) \s+ (?<AS_number>\d+) (?<process_config>.*?) ^ \!
-                                /smx;
+    my $routingProcessSectionRegex = qr/^router \s (?<route_type>(?:bgp|ospf|eigrp|rip)) \s+ (?<AS_number>\d+) (?<process_config>.*?) ^ \! /smx;
 
     #Array of all interfaces and their config text
     my (@allInterfaces) = $configText =~ /$interfaceRegex/ig;
@@ -113,7 +116,7 @@ sub main {
     #Array of all routing processes and their config text
     my (@routingProcessSections) = $configText =~ /$routingProcessSectionRegex/ig;
 
-    say @routingProcessSections;
+    #say @routingProcessSections;
     
     #Find all layer 3 enabled interfaces
     foreach my $interfaceText (@allInterfaces) {
@@ -127,11 +130,14 @@ sub main {
             next;
         }
 
+	#Get bandwidth if it's defined for this interface
         ($bandwidth)   = $interfaceText =~ m/^ \s+ bandwidth \s+ (\d+) $/ixmg;
+        
+        #Get description if it's defined for this interface
         ($description) = $interfaceText =~ m/^ \s+ description \s+ (.*) $/imxg;
 
-        #The very first line of a section
-        ($interface) = $interfaceText =~ m/\A (.*) $/imxg;
+        #The very first line of a section, should contain the interface name       
+        ($interface) = $interfaceText =~ m/\A (.*) \R/imxg;
 
         #All Ip address and netmask pairs for each interface
         # say $ipv4InterfaceIpAddressRegex;
@@ -154,7 +160,7 @@ sub main {
 
             if ($subnet) {
 
-                #Comment next line out to not use the NetAddr object
+                
                 $ip_addr         = $subnet->addr;
                 $network_mask    = $subnet->mask;
                 $network_masklen = $subnet->masklen;
@@ -164,16 +170,20 @@ sub main {
                 $isRfc1918       = $subnet->is_rfc1918();
                 $range           = $subnet->range();
 
-              
-                 #strip leading and trailing whitespace
-		$description =~ s/^\s+//;
-		$description =~ s/\s+$//;
-		
-                $description =~ s/,/-/g;
-
+                if ($description){
+		  #strip leading and trailing whitespace
+		  $description =~ s/^\s+//;
+		  $description =~ s/\s+$//;
+		  
+		  $description =~ s/,/-/g;
+		}
 		no warnings 'uninitialized';
-                say
-                  "$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
+# 		say "$hostname,$interface";
+		#Remove line breaks from these
+		$hostname =~ s/\R//g;
+		 $interface =~ s/\R//g;
+		 
+                say "$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
             }
             else {
                 say
@@ -232,7 +242,7 @@ sub main {
                 $range           = $subnet->range();
 
 
-                no warnings 'uninitialized';
+#                 no warnings 'uninitialized';
                 say
                   "$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
             }
@@ -266,7 +276,7 @@ sub main {
                 $range           = $subnet->range();
 
                 # say $ip_addr_bigint;
-                no warnings 'uninitialized';
+#                 no warnings 'uninitialized';
                 say
                   "$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type-aggregate,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
             }
@@ -318,7 +328,7 @@ sub main {
                 $ip_addr_bigint  = $subnet->bigint();
                 $isRfc1918       = $subnet->is_rfc1918();
                 $range           = $subnet->range();
-                no warnings 'uninitialized';
+#                 no warnings 'uninitialized';
                 say
                   "$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
 
@@ -358,7 +368,7 @@ sub main {
                 $isRfc1918       = $subnet->is_rfc1918();
                 $range           = $subnet->range();
 
-                no warnings 'uninitialized';
+#                 no warnings 'uninitialized';
                 
                 say
                   "$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";

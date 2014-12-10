@@ -30,6 +30,8 @@ Getting started
 make destination<br>
 make clean<br>
 Put all of your configuration files into "configuration_files"<br>
+  (something like
+    find . -iname "*.Config" -exec mv {} <full path to configuration_files> \;)
 make organize<br>
 make inpath<br>
 make hosts<br>
