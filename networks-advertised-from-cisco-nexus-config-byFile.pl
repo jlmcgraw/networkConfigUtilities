@@ -66,15 +66,12 @@ sub main {
 
 
 
-    my $ipv4AddressRegex = qr/(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.
-			      (?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.
-			      (?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.
-			      (?:25[0-5]|2[0-4]\d|[01]?\d\d?)/mx;
+    my $ipv4AddressRegex = qr/(?:25[0-5] | 2[0-4]\d | [01]?\d\d?)\.
+			      (?:25[0-5] | 2[0-4]\d | [01]?\d\d?)\.
+			      (?:25[0-5] | 2[0-4]\d | [01]?\d\d?)\.
+			      (?:25[0-5] | 2[0-4]\d | [01]?\d\d?)/mx;
 
-    my $ipv4NetmaskRegex = qr/(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.
-			      (?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.
-			      (?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.
-			      (?:25[0-5]|2[0-4]\d|[01]?\d\d?)/mx;
+    my $ipv4NetmaskRegex = qr/(?:\d+)/mx;
 
     #Read in entire file
     my $configText = read_file($inputConfigFile);
@@ -83,9 +80,15 @@ sub main {
     my $hostnameRegex = qr/^hostname \s+ ([\w\-]+)/mx;
     ($hostname) = $configText =~ /$hostnameRegex/ig;
 
+    #If we didn't find a hostname use the name of the input file 
+    if (! $hostname) {
+      $hostname = $filename;
+      }
+      
     #Find routing processes
     my $routingProcessRegex =
       qr/^ \s+ router \s+ (bgp|ospf|eigrp|rip) \s+ (\d+) $/mx;
+    
     my @routingProcesses = $configText =~ /$routingProcessRegex/ig;
 
     #     say @routingProcesses;
@@ -97,10 +100,10 @@ sub main {
     # qr /^\s*network ((?:\d{1,3}\.){3}\d{1,3})\s+((?:\d{1,3}\.){3}\d{1,3})\s*$/smx;
 
     my $ipv4InterfaceIpAddressRegex =
-      qr/^ \s+ ip \s+ address \s+ (?<ip>$ipv4AddressRegex) \s+ (?<mask>$ipv4NetmaskRegex) /mx;
+      qr/^ \s+ ip \s+ address \s+ (?<ip>$ipv4AddressRegex) \s* \/ \s* (?<mask>$ipv4NetmaskRegex) /mx;
 
-    #Match any interface up to first "!", capturing the intervening text
-    my $interfaceRegex = qr/^ interface \s+ (.*?) !/smx;
+    #Match any interface up to first word character in the first column, capturing the intervening text
+    my $interfaceRegex = qr/^ interface \s+ (.*?) \n\w/smx;
 
     #Pull out all config for each routing process (from "router" up to first line beginning with "!"
     my $routingProcessSectionRegex =
@@ -117,14 +120,13 @@ sub main {
 
     #Find all layer 3 enabled interfaces
     foreach my $interfaceText (@allInterfaces) {
-
+#  	 say $interfaceText;
 	#Clear old interface information
         $interface = $description = $bandwidth = $route_type = $AS_number =
           $ip_addr = $network_mask = $network_masklen = $subnet = "";
 
         if ( $interfaceText =~ /^ \s* shutdown $/ixm ) {
-
-            # say "Interface is SHUTDOWN";
+            say "Interface is SHUTDOWN";
             next;
         }
 
@@ -149,9 +151,12 @@ sub main {
 
         #Loop through each ip/mask pair
         for ( my $i = 0 ; $i < 0 + @ipAddresses ; $i = $i + 2 ) {
-            my $ip   = $ipAddresses[$i];
+            my $ip   = $ipAddresses[ $i ];
             my $mask = $ipAddresses[ $i + 1 ];
 
+#             say 0 + @ipAddresses ;
+#             say "IP:$ip - mask: $mask";
+            
             #Create an new subnet from proper fields
             my $subnet = NetAddr::IP->new("$ip/$mask");
 
@@ -387,7 +392,7 @@ sub main {
                 $isRfc1918       = $subnet->is_rfc1918();
                 $range           = $subnet->range();
 
-                no warnings 'uninitialized';
+                #no warnings 'uninitialized';
 
                 say
                   "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
