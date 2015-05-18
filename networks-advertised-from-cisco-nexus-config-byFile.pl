@@ -220,7 +220,7 @@ sub main {
 
         # identify lines with "network #.#.#.# mask #.#.#.#" in them (BGP routes) and capture what we're interested in
         if ( $_ =~
-            /^ \s* network \s+ (?<ip_addr>(?:\d{1,3}\.){3}\d{1,3}) \s+ mask \s+ (?<network_mask>(?:\d{1,3}\.){3}\d{1,3})/ix
+            /^ \s* network \s+ (?<ip_addr>$ipv4AddressRegex) \s+ mask \s+ (?<network_mask>$ipv4NetmaskRegex)/ix
           )
         {
 	    #Named captures
@@ -252,8 +252,7 @@ sub main {
         # identify lines with "aggregate-address #.#.#.#  #.#.#.#" in them (BGP routes)
         if (
             $_ =~
-            /^ \s* aggregate-address \s+ (?<ip_addr>(?:\d{1,3}\.){3}\d{1,3}) \s+ (?<network_mask>(?:\d{1,3}\.){3}\d{1,3})
-            /ix
+            /^ \s* aggregate-address \s+ (?<ip_addr>$ipv4AddressRegex) \s+ (?<network_mask>$ipv4NetmaskRegex)/ix
           )
         {
 	    #Named captures
@@ -275,7 +274,7 @@ sub main {
                 # say $ip_addr_bigint;
                 #                 no warnings 'uninitialized';
                 say
-                  "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
+                  "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type-aggregate,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
             }
             else {
                 say
@@ -286,7 +285,7 @@ sub main {
         # identify lines with "network #.#.#.# #.#.#.#" in them (EIGRP, OSPF, RIP routes)
         if (
             $_ =~
-            /^ \s* network \s+ (?<ip_addr>(?:\d{1,3}\.){3}\d{1,3}) \s+ (?<network_mask>(?:\d{1,3}\.){3}\d{1,3}) \s* $ 
+            /^ \s* network \s+ (?<ip_addr>$ipv4AddressRegex) \s+ (?<network_mask>$ipv4NetmaskRegex)
             /ix
           )
         {
@@ -295,20 +294,21 @@ sub main {
             $network_mask = $+{network_mask};
 
             #say "$1 $2";
-            #strip leading whitespace
-            $_ =~ s/^\s+//;
-
-            #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
-            @fields = split /\s+|\//, $_;
+#             #strip leading whitespace
+#             $_ =~ s/^\s+//;
+# 
+#             #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+#             @fields = split /\s+|\//, $_;
 
             #This little bit of magic inverts the wildcard mask to a netmask.  Copied from somewhere on the net
-            my $mask_wild_dotted = $fields[2];
+            my $mask_wild_dotted = $network_mask;
             my $mask_wild_packed = pack 'C4', split /\./, $mask_wild_dotted;
+            
             my $mask_norm_packed = ~$mask_wild_packed;
             my $mask_norm_dotted = join '.', unpack 'C4', $mask_norm_packed;
 
             #Create an new subnet from captured info
-            $subnet = NetAddr::IP->new("$fields[1]/$mask_norm_dotted");
+            $subnet = NetAddr::IP->new("$ip_addr/$mask_norm_dotted");
 
             if ($subnet) {
 
@@ -334,8 +334,7 @@ sub main {
         # identify lines with "network #.#.#.#/##" in them (Nexus EIGRP, OSPF, RIP routes)
         if (
             $_ =~
-            /^ \s* network \s+ (?<ip_addr>(?:\d{1,3}\.){3}\d{1,3})\/(?<network_mask>\d\d)
-                   /ix
+            /^ \s* network \s+ (?<ip_addr>$ipv4AddressRegex) \/ (?<network_mask>\d\d)/ix
           )
         {
 	    #Named captures

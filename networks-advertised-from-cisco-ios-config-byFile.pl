@@ -1,10 +1,12 @@
 #!/usr/bin/perl
-    
+
 #
 # Gather the networks advertised by various routing protocols via "network" statements
 # Obviously this doesn't fully represent what is actually advertised but it's a start
-    
+
 #TODO Make use of the routing process sections code, we're not doing that yet
+
+#Yes, this code is reading in each file twice
 
 use warnings;
 use strict;
@@ -64,8 +66,6 @@ sub main {
 
     my $debug = $opt{v};
 
-
-
     my $ipv4AddressRegex = qr/(?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.
 			      (?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.
 			      (?:25[0-5]|2[0-4]\d|[01]?\d\d?)\.
@@ -118,7 +118,7 @@ sub main {
     #Find all layer 3 enabled interfaces
     foreach my $interfaceText (@allInterfaces) {
 
-	#Clear old interface information
+        #Clear old interface information
         $interface = $description = $bandwidth = $route_type = $AS_number =
           $ip_addr = $network_mask = $network_masklen = $subnet = "";
 
@@ -143,6 +143,7 @@ sub main {
 
         #Are any IP addresses defined on this interface?
         if ( !@ipAddresses ) {
+
             # say "Interface HAS NO IPv4 ADDRESS";
             next;
         }
@@ -174,7 +175,7 @@ sub main {
 
                     $description =~ s/,/-/g;
                 }
-                
+
                 #no warnings 'uninitialized';
 
                 # 		say "$hostname,$interface";
@@ -195,206 +196,211 @@ sub main {
 
     while (<$file>) {
 
-        #The section reads in the file sequentially.  It relies on information being in a particular order in the config
+        #The section reads in the file sequentially.  
+        #It relies on information being in a particular order in the config
         # identify lines with "router " at the beginning
-        if ( $_ =~
-            /^router \s+ (?<route_type>(bgp|ospf|eigrp|rip)) \s+ (?<AS_number>\d+) /ix
-          )
-        {
+        given ($_) {
+            when ( $_ =~
+                  /^router \s+ (?<route_type>(bgp|ospf|eigrp|rip)) \s+ (?<AS_number>\d+) /ix
+              )
+            {
 
-            #Reset variables after each new routing process just in case
-            $interface = $description = $bandwidth = $route_type = $AS_number =
-              $ip_addr = $network_mask = $network_masklen = $subnet = "";
+                #Reset variables after each new routing process just in case
+                $interface = $description = $bandwidth = $route_type =
+                  $AS_number =
+                  $ip_addr = $network_mask = $network_masklen = $subnet = "";
 
-	    #Named captures
-            $route_type = $+{route_type};    #routing process
-            $AS_number  = $+{AS_number};     #AS number
+                #Named captures
+                $route_type = $+{route_type};    #routing process
+                $AS_number  = $+{AS_number};     #AS number
 
-            #             say "$route_type,$AS_number;"
-        }
-
-        # identify lines with "network #.#.#.# mask #.#.#.#" in them (BGP routes) and capture what we're interested in
-        if ( $_ =~
-            /^ \s* network \s+ (?<ip_addr>(?:\d{1,3}\.){3}\d{1,3}) \s+ mask \s+ (?<network_mask>(?:\d{1,3}\.){3}\d{1,3})/ix
-          )
-        {
-	    #Named captures
-            $ip_addr      = $+{ip_addr};
-            $network_mask = $+{network_mask};
-
-            #Create an new subnet from captured info
-            $subnet = NetAddr::IP->new("$ip_addr/$network_mask");
-
-            if ($subnet) {
-
-                $ip_addr         = $subnet->addr;
-                $network_mask    = $subnet->mask;
-                $network_masklen = $subnet->masklen;
-                $ip_addr_bigint  = $subnet->bigint();
-                $isRfc1918       = $subnet->is_rfc1918();
-                $range           = $subnet->range();
-
-                #                 no warnings 'uninitialized';
-                say
-                  "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
+                #             say "$route_type,$AS_number;"
             }
-            else {
-                say
-                  "Network w/ mask1: device: $hostname couldn't create subnet for $ip_addr, mask $network_mask";
-            }
-        }
 
-        # identify lines with "aggregate-address #.#.#.#  #.#.#.#" in them (BGP routes)
-        if (
-            $_ =~
-            /^ \s* aggregate-address \s+ (?<ip_addr>(?:\d{1,3}\.){3}\d{1,3}) \s+ (?<network_mask>(?:\d{1,3}\.){3}\d{1,3})
+            # identify lines with "network #.#.#.# mask #.#.#.#" in them (BGP routes) and capture what we're interested in
+            when ( $_ =~
+                  /^ \s* network \s+ (?<ip_addr>$ipv4AddressRegex) \s+ mask \s+ (?<network_mask>$ipv4NetmaskRegex)/ix
+              )
+            {
+                #Named captures
+                $ip_addr      = $+{ip_addr};
+                $network_mask = $+{network_mask};
+
+                #Create an new subnet from captured info
+                $subnet = NetAddr::IP->new("$ip_addr/$network_mask");
+
+                if ($subnet) {
+
+                    $ip_addr         = $subnet->addr;
+                    $network_mask    = $subnet->mask;
+                    $network_masklen = $subnet->masklen;
+                    $ip_addr_bigint  = $subnet->bigint();
+                    $isRfc1918       = $subnet->is_rfc1918();
+                    $range           = $subnet->range();
+
+                    #                 no warnings 'uninitialized';
+                    say
+                      "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
+                }
+                else {
+                    say
+                      "Network w/ mask1: device: $hostname couldn't create subnet for $ip_addr, mask $network_mask";
+                }
+            }
+
+            # identify lines with "aggregate-address #.#.#.#  #.#.#.#" in them (BGP routes)
+            when (
+                $_ =~
+                  /^ \s* aggregate-address \s+ (?<ip_addr>$ipv4AddressRegex) \s+ (?<network_mask>$ipv4NetmaskRegex)
             /ix
-          )
-        {
-	    #Named captures
-            $ip_addr      = $+{ip_addr};
-            $network_mask = $+{network_mask};
+              )
+            {
+                #Named captures
+                $ip_addr      = $+{ip_addr};
+                $network_mask = $+{network_mask};
 
-            $subnet = NetAddr::IP->new("$ip_addr/$network_mask");
+                $subnet = NetAddr::IP->new("$ip_addr/$network_mask");
 
-            if ($subnet) {
+                if ($subnet) {
 
-                #Comment next line out to not use the NetAddr object
-                $ip_addr         = $subnet->addr;
-                $network_mask    = $subnet->mask;
-                $network_masklen = $subnet->masklen;
-                $ip_addr_bigint  = $subnet->bigint();
-                $isRfc1918       = $subnet->is_rfc1918();
-                $range           = $subnet->range();
+                    #Comment next line out to not use the NetAddr object
+                    $ip_addr         = $subnet->addr;
+                    $network_mask    = $subnet->mask;
+                    $network_masklen = $subnet->masklen;
+                    $ip_addr_bigint  = $subnet->bigint();
+                    $isRfc1918       = $subnet->is_rfc1918();
+                    $range           = $subnet->range();
 
-                # say $ip_addr_bigint;
-                #                 no warnings 'uninitialized';
-                say
-                  "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
+                    
+                    #                 no warnings 'uninitialized';
+                    say
+                      "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type-aggregate,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
+                }
+                else {
+                    say
+                      "Aggregate network w/ mask: device: $hostname couldn't create subnet for $ip_addr, mask $network_mask";
+                }
             }
-            else {
-                say
-                  "Aggregate network w/ mask: device: $hostname couldn't create subnet for $ip_addr, mask $network_mask";
-            }
-        }
 
-        # identify lines with "network #.#.#.# #.#.#.#" in them (EIGRP, OSPF, RIP routes)
-        if (
-            $_ =~
-            /^ \s* network \s+ (?<ip_addr>(?:\d{1,3}\.){3}\d{1,3}) \s+ (?<network_mask>(?:\d{1,3}\.){3}\d{1,3}) \s* $ 
+            # identify lines with "network #.#.#.# #.#.#.#" in them (EIGRP, OSPF, RIP routes)
+            when (
+                $_ =~
+                  /^ \s* network \s+ (?<ip_addr>$ipv4AddressRegex) \s+ (?<network_mask>$ipv4NetmaskRegex)
             /ix
-          )
-        {
-	    #Named captures
-            $ip_addr      = $+{ip_addr};
-            $network_mask = $+{network_mask};
+              )
+            {
+                #Named captures
+                $ip_addr      = $+{ip_addr};
+                $network_mask = $+{network_mask};
 
-            #say "$1 $2";
-            #strip leading whitespace
-            $_ =~ s/^\s+//;
+                #say "$1 $2";
+                #             #strip leading whitespace
+                #             $_ =~ s/^\s+//;
+                #
+                #             #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
+                #             @fields = split /\s+|\//, $_;
 
-            #split the good lines into space or "/"separated fields (nexus format is #.#.#.#/mask)
-            @fields = split /\s+|\//, $_;
+                #This little bit of magic inverts the wildcard mask to a netmask.  Copied from somewhere on the net
+                my $mask_wild_dotted = $network_mask;
+                my $mask_wild_packed = pack 'C4', split /\./, $mask_wild_dotted;
 
-            #This little bit of magic inverts the wildcard mask to a netmask.  Copied from somewhere on the net
-            my $mask_wild_dotted = $fields[2];
-            my $mask_wild_packed = pack 'C4', split /\./, $mask_wild_dotted;
-            my $mask_norm_packed = ~$mask_wild_packed;
-            my $mask_norm_dotted = join '.', unpack 'C4', $mask_norm_packed;
+                my $mask_norm_packed = ~$mask_wild_packed;
+                my $mask_norm_dotted = join '.', unpack 'C4', $mask_norm_packed;
 
-            #Create an new subnet from captured info
-            $subnet = NetAddr::IP->new("$fields[1]/$mask_norm_dotted");
+                #Create an new subnet from captured info
+                $subnet = NetAddr::IP->new("$ip_addr/$mask_norm_dotted");
 
-            if ($subnet) {
+                if ($subnet) {
 
-                $ip_addr      = $subnet->addr;
-                $network_mask = $subnet->mask;  #Change to masklen to get length
-                $network_masklen = $subnet->masklen;
-                $ip_addr_bigint  = $subnet->bigint();
-                $isRfc1918       = $subnet->is_rfc1918();
-                $range           = $subnet->range();
+                    $ip_addr = $subnet->addr;
+                    $network_mask = $subnet->mask;
+                    $network_masklen = $subnet->masklen;
+                    $ip_addr_bigint  = $subnet->bigint();
+                    $isRfc1918       = $subnet->is_rfc1918();
+                    $range           = $subnet->range();
 
-                #                 no warnings 'uninitialized';
-                say
-                  "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
+                    #                 no warnings 'uninitialized';
+                    say
+                      "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
 
+                }
+                else {
+
+                    say
+                      "Network w/ inverted mask: device: $hostname couldn't create subnet for $ip_addr/$mask_norm_dotted";
+                }
             }
-            else {
 
-                say
-                  "Network w/ inverted mask: device: $hostname couldn't create subnet for $fields[1]/$mask_norm_dotted";
+            # identify lines with "network #.#.#.#/##" in them (Nexus EIGRP, OSPF, RIP routes)
+            when ( $_ =~
+                  /^ \s* network \s+ (?<ip_addr>$ipv4AddressRegex) \/ (?<network_mask>\d\d)/ix
+              )
+            {
+                #Named captures
+                $ip_addr      = $+{ip_addr};
+                $network_mask = $+{network_mask};
+
+                #Create an new subnet from captured info
+                $subnet = NetAddr::IP->new("$ip_addr/$network_mask");
+                if ($subnet) {
+
+                    $ip_addr         = $subnet->addr;
+                    $network_mask    = $subnet->mask;
+                    $network_masklen = $subnet->masklen;
+                    $ip_addr_bigint  = $subnet->bigint();
+                    $isRfc1918       = $subnet->is_rfc1918();
+                    $range           = $subnet->range();
+
+                    #                 no warnings 'uninitialized';
+
+                    say
+                      "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
+                }
+                else {
+                    say
+                      "Network w/ CIDR: device: $hostname couldn't create subnet for $ip_addr, mask $network_mask";
+                }
             }
-        }
 
-        # identify lines with "network #.#.#.#/##" in them (Nexus EIGRP, OSPF, RIP routes)
-        if (
-            $_ =~
-            /^ \s* network \s+ (?<ip_addr>(?:\d{1,3}\.){3}\d{1,3})\/(?<network_mask>\d\d)
+            # identify lines with "network #.#.#.#/##" in them (Nexus EIGRP, OSPF, RIP routes)
+            when (
+                $_ =~
+                  /^ \s* ip \s+ route  \s+ (?<ip_addr>$ipv4AddressRegex) \s+ (?<network_mask>$ipv4NetmaskRegex)
                    /ix
-          )
-        {
-	    #Named captures
-            $ip_addr      = $+{ip_addr};
-            $network_mask = $+{network_mask};
+              )
+            {
+                #Reset variables
+                $interface = $description = $bandwidth = $route_type =
+                  $AS_number =
+                  $ip_addr = $network_mask = $network_masklen = $subnet = "";
 
-	    #Create an new subnet from captured info
-            $subnet = NetAddr::IP->new("$ip_addr/$network_mask");
-            if ($subnet) {
+                #Named captures
+                $ip_addr      = $+{ip_addr};
+                $network_mask = $+{network_mask};
 
-                $ip_addr         = $subnet->addr;
-                $network_mask    = $subnet->mask;
-                $network_masklen = $subnet->masklen;
-                $ip_addr_bigint  = $subnet->bigint();
-                $isRfc1918       = $subnet->is_rfc1918();
-                $range           = $subnet->range();
+                #Create an new subnet from captured info
+                $subnet = NetAddr::IP->new("$ip_addr/$network_mask");
 
-                #                 no warnings 'uninitialized';
+                $route_type = "static";
 
-                say
-                  "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
-            }
-            else {
-                say
-                  "Network w/ CIDR: device: $hostname couldn't create subnet for $ip_addr, mask $network_mask";
-            }
-        }
+                if ($subnet) {
 
-        # identify lines with "network #.#.#.#/##" in them (Nexus EIGRP, OSPF, RIP routes)
-        if (
-            $_ =~
-            /^ \s* ip \s+ route  \s+ (?<ip_addr>$ipv4AddressRegex) \s+ (?<network_mask>$ipv4NetmaskRegex)
-                   /ix
-          )
-        {
-	    #Reset variables
-	    $interface = $description = $bandwidth = $route_type = $AS_number =
-              $ip_addr = $network_mask = $network_masklen = $subnet = "";
-	    #Named captures
-            $ip_addr      = $+{ip_addr};
-            $network_mask = $+{network_mask};
+                    $ip_addr         = $subnet->addr;
+                    $network_mask    = $subnet->mask;
+                    $network_masklen = $subnet->masklen;
+                    $ip_addr_bigint  = $subnet->bigint();
+                    $isRfc1918       = $subnet->is_rfc1918();
+                    $range           = $subnet->range();
 
-	    #Create an new subnet from captured info
-            $subnet = NetAddr::IP->new("$ip_addr/$network_mask");
+                    no warnings 'uninitialized';
 
-            $route_type = "static";
-
-            if ($subnet) {
-            
-                $ip_addr         = $subnet->addr;
-                $network_mask    = $subnet->mask;
-                $network_masklen = $subnet->masklen;
-                $ip_addr_bigint  = $subnet->bigint();
-                $isRfc1918       = $subnet->is_rfc1918();
-                $range           = $subnet->range();
-
-                no warnings 'uninitialized';
-
-                say
-                  "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
-            }
-            else {
-                say
-                  "Network w/ CIDR: device: $hostname couldn't create subnet for $ip_addr, mask $network_mask";
+                    say
+                      "$inputConfigFile,$hostname,$interface,$bandwidth,$description,$ip_addr,$network_mask,$network_masklen,$route_type,$AS_number,$ip_addr_bigint,$isRfc1918,$range";
+                }
+                else {
+                    say
+                      "Network w/ CIDR: device: $hostname couldn't create subnet for $ip_addr, mask $network_mask";
+                }
             }
         }
     }

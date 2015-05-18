@@ -63,7 +63,7 @@ while (<>) {
 
         #Create an new subnet from proper fields
         $subnet = NetAddr::IP->new("$fields[1]/$fields[3]");
-        
+
         if ($subnet) {
 
             # $ip_addr      = $fields[1];
