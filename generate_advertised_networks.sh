@@ -1,6 +1,6 @@
 #!/bin/bash
 set -eu                # Always put this in Bourne shell scripts
-IFS="`printf '\n\t'`"  # Always put this in Bourne shell scripts
+IFS=$(printf '\n\t')  # Always put this in Bourne shell scripts
 
 echo "#This file was created on $(date)"
 echo "file,hostname,interface,bandwidth,description,ip_addr,network_mask,network_masklen,route_type,AS_number,ip_addr_bigint,isRfc1918,range"
